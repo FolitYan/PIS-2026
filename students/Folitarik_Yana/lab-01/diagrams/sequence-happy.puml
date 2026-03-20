@@ -1,0 +1,48 @@
+@startuml
+skinparam maxmessagesize 150
+
+actor "Автор" as Author
+participant "Web UI" as UI
+participant "Post API" as API
+participant "Moderation Service" as Mod
+database "Database" as DB
+participant "Feed Service" as Feed
+
+note over Author, Feed
+  <b>Use-case 1: Создание и публикация поста</b>
+  Основной поток (Happy Path)
+end note
+
+Author -> UI: 1-3. Ввести текст и нажать "Опубликовать"
+activate UI
+
+UI -> API: POST /api/posts {text}
+activate API
+
+note right of API: 4. Внутренняя валидация:\nдлина от 1 до 280 символов
+
+API -> Mod: 5. CheckSpam(text)
+activate Mod
+Mod --> API: 6. status: SUCCESS (Спама нет)
+deactivate Mod
+
+API -> DB: 7-8. Создать запись поста
+activate DB
+DB --> API: post_id: "POST-9912"
+deactivate DB
+
+note right of API: 9. Асинхронное обновление\nлент подписчиков (пунктир)
+API -[dashed]-> Feed: <<async>> UpdateFollowersFeed(post_id)
+activate Feed
+Feed -[dashed]-> API: ACK (принято в очередь)
+deactivate Feed
+
+API --> UI: 201 Created, post_id
+deactivate API
+
+note left of UI: 11. Пост мгновенно появляется\nвверху ленты Автора
+UI --> Author: 10. Показать сообщение\n"Пост успешно опубликован"
+deactivate UI
+
+@enduml
+

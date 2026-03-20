@@ -1,0 +1,46 @@
+@startuml
+skinparam maxmessagesize 150
+
+actor "Читатель" as Reader
+participant "Web UI" as UI
+participant "Like API" as API
+participant "Notification Service" as Notify
+database "Database" as DB
+
+note over Reader, DB
+  <b>Use-case 2: Постановка отметки «Нравится»</b>
+  Основной поток (Happy Path)
+end note
+
+Reader -> UI: 1-2. Нажать иконку "Сердечко" (🤍)
+activate UI
+
+note right of UI: 3. Оптимистичное обновление UI:\nмгновенная замена на ❤️
+UI --> Reader: Показать заполненное сердечко (❤️)
+
+UI -> API: 4. POST /api/posts/{post_id}/like
+activate API
+
+API -> DB: 5. Проверка существования лайка
+activate DB
+DB --> API: Результат: NotFound (Идемпотентность ок)
+deactivate DB
+
+API -> DB: 6-7. Создать лайк и увеличить счетчик (+1)
+activate DB
+DB --> API: Успешно (likes_count: N)
+deactivate DB
+
+note right of API: 8. Асинхронная отправка\nуведомления автору (пунктир)
+API -[dashed]-> Notify: <<async>> SendLikeNotification(post_id, reader_id)
+activate Notify
+Notify -[dashed]-> API: ACK (событие принято)
+deactivate Notify
+
+API --> UI: 200 OK, new_likes_count
+deactivate API
+
+UI --> Reader: 9. Обновить цифру счётчика под постом
+deactivate UI
+
+@enduml

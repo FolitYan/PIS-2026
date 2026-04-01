@@ -1,0 +1,25 @@
+graph TD
+    subgraph Infrastructure [Infrastructure Layer]
+        API[PostController<br/>REST API]
+        DB[(InMemoryPostRepository)]
+        ModAdapter[ModerationAdapter<br/>Mock]
+        NotifyAdapter[ConsoleNotificationAdapter]
+    end
+
+    subgraph Application [Application Layer]
+        InPorts[Inbound Ports<br/>CreatePostUseCase<br/>LikePostUseCase]
+        Service[PostService<br/>Application Service]
+        OutPorts[Outbound Ports<br/>PostRepository<br/>ModerationPort<br/>NotificationPort]
+    end
+
+    subgraph Domain [Domain Layer]
+        Post[Post Entity]
+    end
+
+    API --> InPorts
+    InPorts --> Service
+    Service --> OutPorts
+    Service --> Post
+    DB --> OutPorts
+    ModAdapter --> OutPorts
+    NotifyAdapter --> OutPorts

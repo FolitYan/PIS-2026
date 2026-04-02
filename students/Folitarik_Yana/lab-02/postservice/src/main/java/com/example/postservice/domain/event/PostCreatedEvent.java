@@ -1,4 +1,4 @@
-package domain.event;
+package com.example.postservice.domain.event;
 
 import java.time.Instant;
 import java.util.UUID;

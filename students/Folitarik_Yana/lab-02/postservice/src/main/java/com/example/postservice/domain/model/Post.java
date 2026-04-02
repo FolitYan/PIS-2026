@@ -1,16 +1,9 @@
-package domain.model;
+package com.example.postservice.domain.model;
 
-import domain.event.DomainEvent;
-import domain.event.PostCreatedEvent;
-import domain.exception.DomainException;
-import domain.valueobject.AuthorId;
-import domain.valueobject.PostContent;
-import domain.valueobject.PostStatus;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
+import com.example.postservice.domain.event.*;
+import com.example.postservice.domain.exception.DomainException;
+import com.example.postservice.domain.valueobject.*;
+import java.util.*;
 
 public class Post {
   private final UUID id;
@@ -34,16 +27,12 @@ public class Post {
   }
 
   public void publish() {
-    if (this.status != PostStatus.DRAFT) {
-      throw new DomainException("Only drafts can be published");
-    }
+    if (this.status == PostStatus.PUBLISHED) throw new DomainException("Already published");
     this.status = PostStatus.PUBLISHED;
   }
 
   public void addLike() {
-    if (this.status != PostStatus.PUBLISHED) {
-      throw new DomainException("Cannot like a post that is not published");
-    }
+    if (this.status != PostStatus.PUBLISHED) throw new DomainException("Not published");
     this.likesCount++;
   }
 

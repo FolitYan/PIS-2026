@@ -1,0 +1,47 @@
+@startuml
+title Сценарий с ошибкой: Moderation Service отклонил пост (Спам/Запрещенные слова)
+
+actor "Автор" as Author
+participant "Web UI" as UI
+participant "Post API" as API
+participant "Moderation\nService" as Mod
+database "Database" as DB
+
+note over Author, Mod
+  Пользователь аутентифицирован.
+  Длина текста прошла первичную валидацию (от 1 до 280 символов).
+end note
+
+Author -> UI: Ввести текст и нажать "Опубликовать"
+activate UI
+
+UI -> API: POST /api/posts\n{text: "какой-то подозрительный текст..."}
+activate API
+
+
+API -> Mod: POST /moderate\n{text}
+activate Mod
+
+note over Mod #FFAAAA
+  Сервис модерации обнаружил 
+  запрещенные слова или спам-паттерны.
+end note
+
+Mod --> API: 403 Forbidden\n{status: FAILED, reason: "profanity_detected"}
+deactivate Mod
+
+
+API -> API: Обработка ошибки:\n- Прерывание процесса публикации\n- НЕ обращаемся к БД
+
+note over API, DB #FFFFAA
+  Запись в Database НЕ создается.
+  Транзакция даже не начинается.
+end note
+
+API --> UI: 406 Not Acceptable\n{error: "Content rejected by moderation"}
+deactivate API
+
+UI --> Author: Показать ошибку:\n"Я не знаю что это такое, если бы мы знали..."
+deactivate UI
+
+@enduml

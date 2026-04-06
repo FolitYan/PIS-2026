@@ -7,19 +7,13 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class GetPostHandler {
-  private final PostDetailsRepository readRepository;
 
-  public GetPostHandler(PostDetailsRepository readRepository) {
-    this.readRepository = readRepository;
-  }
+  private final PostRepository repository;
+  public GetPostHandler(PostRepository repository) { this.repository = repository; }
 
-  public PostResponse handle(GetPostQuery query) {
-    return readRepository.findById(query.postId())
-      .map(view -> new PostResponse(
-        view.getId().toString(),
-        view.getContent(),
-        view.getStatus(),
-        view.getLikesCount()
-      )).orElseThrow();
+  public PostResponse handle(GetPostQuery q) {
+    return repository.findById(q.postId())
+      .map(p -> new PostResponse(p.getId().toString(), p.getContent().value(), p.getStatus().name(), p.getLikesCount()))
+      .orElseThrow();
   }
 }

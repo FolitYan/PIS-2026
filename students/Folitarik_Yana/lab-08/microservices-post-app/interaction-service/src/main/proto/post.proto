@@ -1,0 +1,32 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+package com.example.postservice.grpc;
+
+message PostProto {
+  string id = 1;
+  string author_id = 2;
+  string content = 3;
+  string status = 4;
+}
+
+message CreatePostRequest {
+  string author_id = 1;
+  string content = 2;
+}
+
+message GetPostRequest {
+  string post_id = 1;
+}
+
+message AuthorStreamRequest {
+  string author_id = 1;
+}
+
+service PostGrpcService {
+  rpc CreatePost(CreatePostRequest) returns (PostProto);
+
+  rpc GetPost(GetPostRequest) returns (PostProto);
+
+  rpc StreamAuthorPosts(AuthorStreamRequest) returns (stream PostProto);
+}
